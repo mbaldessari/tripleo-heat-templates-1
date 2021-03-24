@@ -201,9 +201,10 @@ outputs:
           with_items:
             - { 'path': /var/log/containers/frr, 'setype': container_file_t, 'mode': '0750' }
             - { 'path': /var/lib/config-data/ansible-generated/frr, 'setype': container_file_t, 'mode': '0750' }
-      deploy_steps_tasks:
+      pre_deploy_step_tasks:
+        # Frr is special because it needs to be up before we try any tasks that need to reach nodes
+        # via the network  That is why we need to duplicate the podman setup steps
         - name: Configure and start FRR before an HA service
-          when: step|int == 1
           block:
             - name: Configure FRR
               import_role:
@@ -232,5 +233,6 @@ outputs:
                 tripleo_container_manage_config_id: "frr"
                 tripleo_container_manage_config_patterns: "frr.json"
                 tripleo_container_manage_systemd_order: true
+                tripleo_container_manage_clean_orphans: false
       update_tasks: []
       upgrade_tasks: []
